@@ -20,7 +20,7 @@ app.use(
 app.use(express.json());
 
 app.get("/", (req, res) => {
-  res.status(200).json({ success: true, message: "Server is running..." });
+  res.status(200).json({ success: true, message: "ShopNest Backend API Server is running..." });
 });
 
 app.use("/api/auth", require("./routes/AuthRoutes"));
@@ -51,6 +51,6 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => {
+app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server is running on port ${PORT}`);
 });
