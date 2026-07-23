@@ -1,6 +1,6 @@
 const User = require("../models/User");
 const Product = require("../models/product");
-const Order = require("../models/Order");
+const Order = require("../models/order");
 
 const getAdminStats = async (req, res) => {
   try {
@@ -13,8 +13,8 @@ const getAdminStats = async (req, res) => {
     const orders = await Order.find();
 
     const totalRevenue = orders.reduce(
-      (acc, order) => acc + (order.totalPrice || 0),
-      0,
+      (acc, order) => acc + (order.totalAmount || order.totalPrice || 0),
+      0
     );
 
     // Send data to frontend
