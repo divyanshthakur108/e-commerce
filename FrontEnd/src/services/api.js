@@ -3,8 +3,23 @@
  * Ensures request logging, base URL resolution, and safe non-crashing JSON response parsing.
  */
 
-export const API_BASE_URL =
-  import.meta.env.VITE_API_URL || "https://e-commerce-ubih.onrender.com";
+const getEnvApiUrl = () => {
+  try {
+    if (
+      typeof import.meta !== "undefined" &&
+      import.meta &&
+      import.meta.env &&
+      import.meta.env.VITE_API_URL
+    ) {
+      return import.meta.env.VITE_API_URL;
+    }
+  } catch (err) {
+    console.warn("[API Client] Failed to read import.meta.env:", err.message);
+  }
+  return "https://e-commerce-ubih.onrender.com";
+};
+
+export const API_BASE_URL = getEnvApiUrl();
 
 /**
  * Parses response safely checking Content-Type header.
