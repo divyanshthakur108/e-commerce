@@ -1,5 +1,6 @@
 const Product = require("../models/product");
 const cloudinary = require("../config/cloudinary");
+const fs = require("fs");
 
 // Get all products with Filtering, Sorting, Searching & Pagination
 const getProducts = async (req, res) => {
@@ -234,6 +235,7 @@ const createProduct = async (req, res) => {
     if (req.file) {
       const result = await cloudinary.uploader.upload(req.file.path);
       imageUrl = result.secure_url;
+      try { fs.unlinkSync(req.file.path); } catch (e) {}
     }
 
     const newProduct = new Product({
@@ -301,6 +303,7 @@ const updateProduct = async (req, res) => {
       if (!product.images.includes(result.secure_url)) {
         product.images.push(result.secure_url);
       }
+      try { fs.unlinkSync(req.file.path); } catch (e) {}
     }
 
     const updatedProduct = await product.save();

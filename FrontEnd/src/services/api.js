@@ -4,6 +4,7 @@
  */
 
 const getEnvApiUrl = () => {
+  let url = "https://e-commerce-ubih.onrender.com";
   try {
     if (
       typeof import.meta !== "undefined" &&
@@ -11,12 +12,12 @@ const getEnvApiUrl = () => {
       import.meta.env &&
       import.meta.env.VITE_API_URL
     ) {
-      return import.meta.env.VITE_API_URL;
+      url = import.meta.env.VITE_API_URL;
     }
   } catch (err) {
     console.warn("[API Client] Failed to read import.meta.env:", err.message);
   }
-  return "https://e-commerce-ubih.onrender.com";
+  return url.replace(/\/+$/, "");
 };
 
 export const API_BASE_URL = getEnvApiUrl();

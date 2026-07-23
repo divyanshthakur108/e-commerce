@@ -1,10 +1,14 @@
 const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
+const fs = require("fs");
 const connectDB = require("./config/db");
 
 dotenv.config();
 connectDB();
+
+// Ensure temporary upload directory exists for multer file uploads
+fs.mkdirSync("upload", { recursive: true });
 
 const app = express();
 
