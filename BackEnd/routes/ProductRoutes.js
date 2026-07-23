@@ -6,6 +6,7 @@ const { admin } = require("../middleware/adminMiddleware");
 
 const {
   getProducts,
+  getHomeProducts,
   getFeaturedProducts,
   getBestSellers,
   getNewArrivals,
@@ -21,6 +22,7 @@ const upload = multer({ dest: "upload/" });
 const router = express.Router();
 
 // Specific routes MUST be defined before /:id
+router.get("/home", getHomeProducts);
 router.get("/featured", getFeaturedProducts);
 router.get("/best-sellers", getBestSellers);
 router.get("/new-arrivals", getNewArrivals);

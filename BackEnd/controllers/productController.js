@@ -113,6 +113,29 @@ const getProducts = async (req, res) => {
   }
 };
 
+// GET /api/products/home - Combined single request endpoint for home sections
+const getHomeProducts = async (req, res) => {
+  try {
+    const [featured, bestSellers, newArrivals, allProducts] = await Promise.all([
+      Product.find({ isFeatured: true }).limit(8),
+      Product.find({ isBestSeller: true }).limit(8),
+      Product.find({ isNewArrival: true }).limit(8),
+      Product.find({}).sort({ createdAt: -1 }).limit(12),
+    ]);
+
+    res.json({
+      success: true,
+      featured,
+      bestSellers,
+      newArrivals,
+      products: allProducts,
+    });
+  } catch (error) {
+    console.error("getHomeProducts error:", error);
+    res.status(500).json({ success: false, message: "Error fetching home products" });
+  }
+};
+
 // GET /api/products/featured
 const getFeaturedProducts = async (req, res) => {
   try {
@@ -307,6 +330,7 @@ const deleteProduct = async (req, res) => {
 
 module.exports = {
   getProducts,
+  getHomeProducts,
   getFeaturedProducts,
   getBestSellers,
   getNewArrivals,

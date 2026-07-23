@@ -40,22 +40,20 @@ const Home = () => {
     const fetchHomeData = async () => {
       try {
         setLoading(true);
-        const [featData, bestData, newData, mainData] = await Promise.all([
-          safeFetch("/api/products/featured").catch(() => []),
-          safeFetch("/api/products/best-sellers").catch(() => []),
-          safeFetch("/api/products/new-arrivals").catch(() => []),
-          safeFetch("/api/products?limit=12").catch(() => ({ products: [] })),
-        ]);
+        const data = await safeFetch("/api/products/home").catch(async () => {
+          const fallbackData = await safeFetch("/api/products?limit=12");
+          return {
+            featured: Array.isArray(fallbackData) ? fallbackData : fallbackData.products || [],
+            bestSellers: [],
+            newArrivals: [],
+            products: Array.isArray(fallbackData) ? fallbackData : fallbackData.products || [],
+          };
+        });
 
-        const featList = Array.isArray(featData) ? featData : featData.products || [];
-        const bestList = Array.isArray(bestData) ? bestData : bestData.products || [];
-        const newList = Array.isArray(newData) ? newData : newData.products || [];
-        const mainList = Array.isArray(mainData) ? mainData : mainData.products || [];
-
-        setFeatured(featList);
-        setBestSellers(bestList);
-        setNewArrivals(newList);
-        setAllProducts(mainList);
+        setFeatured(data.featured || []);
+        setBestSellers(data.bestSellers || []);
+        setNewArrivals(data.newArrivals || []);
+        setAllProducts(data.products || []);
       } catch (error) {
         console.error("Error fetching homepage products:", error);
       } finally {
