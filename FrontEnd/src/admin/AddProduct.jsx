@@ -1,6 +1,7 @@
 import React, { useState, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { safeFetch } from "../services/api";
 
 const AddProduct = () => {
   const { user } = useContext(AuthContext);
@@ -35,21 +36,17 @@ const AddProduct = () => {
     data.append("image", image);
 
     try {
-      const res = await fetch("/api/products", {
+      await safeFetch("/api/products", {
         method: "POST",
         headers: { Authorization: `Bearer ${user.token}` },
         body: data,
       });
-      const responseData = await res.json();
 
-      if (res.ok) {
-        alert("Product created successfully with Cloudinary Image URL!");
-        navigate("/shop");
-      } else {
-        alert(responseData.message || "Error creating product");
-      }
+      alert("Product created successfully!");
+      navigate("/shop");
     } catch (error) {
       console.error(error);
+      alert(error.message || "Error creating product");
     } finally {
       setLoading(false);
     }

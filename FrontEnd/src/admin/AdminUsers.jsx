@@ -1,19 +1,19 @@
 import React, { useEffect, useState, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 
+import { safeFetch } from "../services/api";
+
 const AdminUsers = () => {
   const { user } = useContext(AuthContext);
   const [users, setUsers] = useState([]);
 
   const fetchUsers = async () => {
     try {
-      const res = await fetch("/api/auth/users", {
+      const data = await safeFetch("/api/auth/users", {
         headers: {
           Authorization: `Bearer ${user.token}`,
         },
       });
-
-      const data = await res.json();
       setUsers(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error(error);
@@ -22,20 +22,18 @@ const AdminUsers = () => {
 
   const handleToggle = async (id) => {
     try {
-      const res = await fetch(`/api/auth/users/${id}/toggle-block`, {
+      const data = await safeFetch(`/api/auth/users/${id}/toggle-block`, {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${user.token}`,
         },
       });
 
-      const data = await res.json();
-
-      alert(data.message);
-
+      alert(data.message || "User status updated");
       fetchUsers();
     } catch (error) {
       console.error(error);
+      alert(error.message || "Failed to update user status");
     }
   };
 

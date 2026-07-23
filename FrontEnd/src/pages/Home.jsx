@@ -4,6 +4,7 @@ import ProductCard from "../components/ProductCard";
 import QuickViewModal from "../components/QuickViewModal";
 import { useDispatch } from "react-redux";
 import { addToCart } from "../redux/cartSlice";
+import { safeFetch } from "../services/api";
 import "../style/product.css";
 
 const CATEGORIES = [
@@ -38,15 +39,11 @@ const Home = () => {
     const fetchHomeData = async () => {
       try {
         setLoading(true);
-        const [featRes, bestRes, newRes] = await Promise.all([
-          fetch("/api/products/featured"),
-          fetch("/api/products/best-sellers"),
-          fetch("/api/products/new-arrivals"),
+        const [featData, bestData, newData] = await Promise.all([
+          safeFetch("/api/products/featured"),
+          safeFetch("/api/products/best-sellers"),
+          safeFetch("/api/products/new-arrivals"),
         ]);
-
-        const featData = await featRes.json();
-        const bestData = await bestRes.json();
-        const newData = await newRes.json();
 
         setFeatured(Array.isArray(featData) ? featData : featData.products || []);
         setBestSellers(Array.isArray(bestData) ? bestData : bestData.products || []);
@@ -61,200 +58,160 @@ const Home = () => {
     fetchHomeData();
   }, []);
 
-  const handleAddToCart = (item) => {
-    dispatch(addToCart(item));
-    if (quickViewProduct) setQuickViewProduct(null);
+  const handleQuickView = (product) => {
+    setQuickViewProduct(product);
+  };
+
+  const handleCloseQuickView = () => {
+    setQuickViewProduct(null);
+  };
+
+  const handleAddToCartQuick = (product, qty = 1) => {
+    const finalPrice = product.discountPrice || product.price;
+    dispatch(
+      addToCart({
+        productId: product._id,
+        name: product.name,
+        price: finalPrice,
+        imageUrl: product.imageUrl,
+        qty,
+      })
+    );
   };
 
   return (
     <div className="home-container">
-      {/* Quick View Modal */}
-      {quickViewProduct && (
-        <QuickViewModal
-          product={quickViewProduct}
-          onClose={() => setQuickViewProduct(null)}
-          onAddToCart={handleAddToCart}
-        />
-      )}
-
-      {/* Hero Banner */}
+      {/* Hero Section */}
       <div className="hero-banner-v2">
         <div className="hero-content">
-          <span className="hero-badge">MEGA SEASON SALE • UP TO 60% OFF</span>
-          <h1>Next-Gen Shopping Experience</h1>
+          <span className="hero-badge">🔥 SUMMER SALE IS LIVE • UP TO 60% OFF</span>
+          <h1>Discover Next-Gen Products at ShopNest</h1>
           <p>
-            Explore top brands in Electronics, Mobiles, Fashion & Gaming with instant
-            express delivery & easy returns.
+            Upgrade your lifestyle with modern tech, trending fashion, and premium home essentials delivered directly to your doorstep.
           </p>
           <div className="hero-btn-group">
-            <button
-              onClick={() => navigate("/shop")}
-              className="btn btn-hero-primary"
-            >
-              Shop All Products ➔
+            <button className="btn-hero-primary" onClick={() => navigate("/shop")}>
+              Explore Full Shop →
             </button>
-            <button
-              onClick={() => navigate("/shop?category=Electronics")}
-              className="btn btn-hero-secondary"
-            >
-              Explore Electronics
+            <button className="btn-hero-secondary" onClick={() => navigate("/shop?category=Electronics")}>
+              Browse Electronics
             </button>
           </div>
         </div>
       </div>
 
-      {/* Trust Badges */}
-      <div className="trust-features-bar">
-        <div className="trust-item">
-          <span className="trust-icon">🚚</span>
-          <div>
-            <h4>Free & Fast Delivery</h4>
-            <p>On orders above ₹499</p>
-          </div>
-        </div>
-        <div className="trust-item">
-          <span className="trust-icon">🛡️</span>
-          <div>
-            <h4>100% Authentic</h4>
-            <p>Direct from top official brands</p>
-          </div>
-        </div>
-        <div className="trust-item">
-          <span className="trust-icon">🔄</span>
-          <div>
-            <h4>7 Days Easy Return</h4>
-            <p>Hassle-free instant refund</p>
-          </div>
-        </div>
-        <div className="trust-item">
-          <span className="trust-icon">💳</span>
-          <div>
-            <h4>Secure Payments</h4>
-            <p>Razorpay & UPI Protected</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Category Icons Bar */}
-      <section className="category-section">
+      {/* Category Slider Bar */}
+      <section className="categories-bar-section">
         <div className="section-header">
-          <h2>Shop By Category</h2>
-          <Link to="/shop" className="view-all-link">
-            See All Categories ➔
+          <h2>Popular Categories</h2>
+          <Link to="/shop" className="see-all-link">
+            All Categories &rarr;
           </Link>
         </div>
-
-        <div className="category-grid">
-          {CATEGORIES.map((cat) => (
+        <div className="categories-grid">
+          {CATEGORIES.map((cat, idx) => (
             <div
-              key={cat.name}
-              className="category-card"
+              key={idx}
+              className="category-tile"
               onClick={() => navigate(`/shop?category=${encodeURIComponent(cat.name)}`)}
             >
               <span className="category-icon">{cat.icon}</span>
-              <span className="category-name">{cat.name}</span>
+              <span className="category-title">{cat.name}</span>
             </div>
           ))}
         </div>
       </section>
 
-      {/* Featured Products */}
-      <section className="home-product-section">
-        <div className="section-header">
-          <h2>🔥 Featured Products</h2>
-          <Link to="/shop" className="view-all-link">
-            View All ➔
-          </Link>
+      {/* Loading Skeleton */}
+      {loading ? (
+        <div className="home-loader-wrap">
+          <div className="spinner"></div>
+          <p>Loading Featured Collection...</p>
         </div>
+      ) : (
+        <>
+          {/* Featured Products */}
+          {featured.length > 0 && (
+            <section className="home-product-section">
+              <div className="section-header">
+                <div>
+                  <span className="section-subtitle">CURATED SELECTION</span>
+                  <h2>Featured Products</h2>
+                </div>
+                <Link to="/shop?sort=featured" className="see-all-link">
+                  View All &rarr;
+                </Link>
+              </div>
+              <div className="product-grid">
+                {featured.map((prod) => (
+                  <ProductCard
+                    key={prod._id}
+                    product={prod}
+                    onQuickView={handleQuickView}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
 
-        {loading ? (
-          <div className="skeleton-grid">
-            {[1, 2, 3, 4].map((n) => (
-              <div key={n} className="skeleton-card"></div>
-            ))}
-          </div>
-        ) : (
-          <div className="product-grid">
-            {featured.slice(0, 8).map((product) => (
-              <ProductCard
-                key={product._id}
-                product={product}
-                onQuickView={setQuickViewProduct}
-              />
-            ))}
-          </div>
-        )}
-      </section>
+          {/* Best Sellers */}
+          {bestSellers.length > 0 && (
+            <section className="home-product-section">
+              <div className="section-header">
+                <div>
+                  <span className="section-subtitle">MOST POPULAR</span>
+                  <h2>Best Sellers</h2>
+                </div>
+                <Link to="/shop" className="see-all-link">
+                  View All &rarr;
+                </Link>
+              </div>
+              <div className="product-grid">
+                {bestSellers.map((prod) => (
+                  <ProductCard
+                    key={prod._id}
+                    product={prod}
+                    onQuickView={handleQuickView}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
 
-      {/* Promo Banner */}
-      <div className="promo-banner">
-        <div className="promo-text">
-          <h3>UP TO 50% OFF ON APPLE & SONY</h3>
-          <p>Get the latest iPhones, MacBooks, and Noise-Cancelling Headphones.</p>
-        </div>
-        <button
-          onClick={() => navigate("/shop?category=Mobiles")}
-          className="btn btn-promo"
-        >
-          Grab Deal Now
-        </button>
-      </div>
+          {/* New Arrivals */}
+          {newArrivals.length > 0 && (
+            <section className="home-product-section">
+              <div className="section-header">
+                <div>
+                  <span className="section-subtitle">JUST IN</span>
+                  <h2>New Arrivals</h2>
+                </div>
+                <Link to="/shop?sort=newest" className="see-all-link">
+                  View All &rarr;
+                </Link>
+              </div>
+              <div className="product-grid">
+                {newArrivals.map((prod) => (
+                  <ProductCard
+                    key={prod._id}
+                    product={prod}
+                    onQuickView={handleQuickView}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
+        </>
+      )}
 
-      {/* Best Sellers */}
-      <section className="home-product-section">
-        <div className="section-header">
-          <h2>⭐ Best Sellers</h2>
-          <Link to="/shop" className="view-all-link">
-            View All ➔
-          </Link>
-        </div>
-
-        {loading ? (
-          <div className="skeleton-grid">
-            {[1, 2, 3, 4].map((n) => (
-              <div key={n} className="skeleton-card"></div>
-            ))}
-          </div>
-        ) : (
-          <div className="product-grid">
-            {bestSellers.slice(0, 8).map((product) => (
-              <ProductCard
-                key={product._id}
-                product={product}
-                onQuickView={setQuickViewProduct}
-              />
-            ))}
-          </div>
-        )}
-      </section>
-
-      {/* New Arrivals */}
-      <section className="home-product-section">
-        <div className="section-header">
-          <h2>✨ New Arrivals</h2>
-          <Link to="/shop" className="view-all-link">
-            View All ➔
-          </Link>
-        </div>
-
-        {loading ? (
-          <div className="skeleton-grid">
-            {[1, 2, 3, 4].map((n) => (
-              <div key={n} className="skeleton-card"></div>
-            ))}
-          </div>
-        ) : (
-          <div className="product-grid">
-            {newArrivals.slice(0, 8).map((product) => (
-              <ProductCard
-                key={product._id}
-                product={product}
-                onQuickView={setQuickViewProduct}
-              />
-            ))}
-          </div>
-        )}
-      </section>
+      {/* Quick View Modal */}
+      {quickViewProduct && (
+        <QuickViewModal
+          product={quickViewProduct}
+          onClose={handleCloseQuickView}
+          onAddToCart={handleAddToCartQuick}
+        />
+      )}
     </div>
   );
 };

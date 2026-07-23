@@ -1,37 +1,35 @@
-import React, { useState, useContext } from "react";
+import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { AuthContext } from "../context/AuthContext";
+import { safeFetch } from "../services/api";
 import "../style/auth.css";
 
 const Register = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const { login } = useContext(AuthContext);
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setErrorMsg("");
+    setLoading(true);
+
     try {
-      const res = await fetch("/api/auth/register", {
+      const data = await safeFetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, password }),
       });
-      const data = await res.json();
-      if (res.ok) {
-        let message =
-          "Registration successful! Please verify the OTP sent to your email.";
-        if (data.otpSent === false && data.debugOtp) {
-          message = `Registration successful! Email sending failed, use OTP: ${data.debugOtp}`;
-        }
-        alert(message);
-        navigate("/verify-otp", { state: { email: data.email } });
-      } else {
-        alert(data.message);
-      }
+
+      alert(data.message || "Registration successful! Verification OTP sent.");
+      navigate("/verify-otp", { state: { email } });
     } catch (error) {
-      console.error(error);
+      console.error("[Register Error]:", error);
+      setErrorMsg(error.message || "Registration failed. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -39,12 +37,20 @@ const Register = () => {
     <div className="auth-container">
       <form onSubmit={handleSubmit} className="auth-form">
         <h2>Register</h2>
+
+        {errorMsg && (
+          <div style={{ color: "#ef4444", marginBottom: "15px", textAlign: "center", fontSize: "0.9rem" }}>
+            {errorMsg}
+          </div>
+        )}
+
         <input
           type="text"
-          placeholder="Full Name"
+          placeholder="Name"
           value={name}
           onChange={(e) => setName(e.target.value)}
           required
+          disabled={loading}
         />
         <input
           type="email"
@@ -52,6 +58,7 @@ const Register = () => {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
+          disabled={loading}
         />
         <input
           type="password"
@@ -59,9 +66,10 @@ const Register = () => {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
+          disabled={loading}
         />
-        <button type="submit" className="btn">
-          Register
+        <button type="submit" className="btn" disabled={loading}>
+          {loading ? "Registering..." : "Register"}
         </button>
         <p>
           Already have an account? <Link to="/login">Login</Link>

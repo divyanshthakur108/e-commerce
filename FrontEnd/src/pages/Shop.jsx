@@ -4,6 +4,7 @@ import ProductCard from "../components/ProductCard";
 import QuickViewModal from "../components/QuickViewModal";
 import { useDispatch } from "react-redux";
 import { addToCart } from "../redux/cartSlice";
+import { safeFetch } from "../services/api";
 import "../style/product.css";
 
 const CATEGORIES = [
@@ -108,8 +109,7 @@ const Shop = () => {
           url += `&rating=${minRating}`;
         }
 
-        const res = await fetch(url);
-        const data = await res.json();
+        const data = await safeFetch(url);
 
         if (Array.isArray(data)) {
           setProducts(data);

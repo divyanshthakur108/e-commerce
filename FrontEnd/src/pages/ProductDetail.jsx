@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { addToCart } from "../redux/cartSlice";
 import ProductCard from "../components/ProductCard";
+import { safeFetch } from "../services/api";
 import "../style/product.css";
 
 const ProductDetail = () => {
@@ -21,22 +22,15 @@ const ProductDetail = () => {
     const fetchProductAndRelated = async () => {
       try {
         setLoading(true);
-        const res = await fetch(`/api/products/${id}`);
-
-        if (!res.ok) {
-          throw new Error("Product not found");
-        }
-
-        const data = await res.json();
+        const data = await safeFetch(`/api/products/${id}`);
         setProduct(data);
         setSelectedImage(data.imageUrl || (data.images && data.images[0]));
 
         // Fetch related products in the same category
         if (data.category) {
-          const relRes = await fetch(
+          const relData = await safeFetch(
             `/api/products/category/${encodeURIComponent(data.category)}`
           );
-          const relData = await relRes.json();
           const filteredRel = (Array.isArray(relData) ? relData : relData.products || [])
             .filter((p) => p._id !== id)
             .slice(0, 4);

@@ -2,6 +2,8 @@ import React, { useEffect, useState, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { useParams, useNavigate } from "react-router-dom";
 
+import { safeFetch } from "../services/api";
+
 const EditProduct = () => {
   const { id } = useParams();
   const { user } = useContext(AuthContext);
@@ -19,15 +21,18 @@ const EditProduct = () => {
 
   useEffect(() => {
     const fetchProduct = async () => {
-      const res = await fetch(`/api/products/${id}`);
-      const data = await res.json();
-      setFormData({
-        name: data.name,
-        description: data.description,
-        price: data.price,
-        category: data.category,
-        stock: data.stock,
-      });
+      try {
+        const data = await safeFetch(`/api/products/${id}`);
+        setFormData({
+          name: data.name || "",
+          description: data.description || "",
+          price: data.price || "",
+          category: data.category || "",
+          stock: data.stock || "",
+        });
+      } catch (err) {
+        console.error(err);
+      }
     };
     fetchProduct();
   }, [id]);
@@ -43,15 +48,18 @@ const EditProduct = () => {
     data.append("stock", formData.stock);
     if (image) data.append("image", image);
 
-    const res = await fetch(`/api/products/${id}`, {
-      method: "PUT",
-      headers: { Authorization: `Bearer ${user.token}` },
-      body: data,
-    });
-    setLoading(false);
-    if (res.ok) {
+    try {
+      await safeFetch(`/api/products/${id}`, {
+        method: "PUT",
+        headers: { Authorization: `Bearer ${user.token}` },
+        body: data,
+      });
       alert("Product updated successfully!");
       navigate("/admin/products");
+    } catch (err) {
+      alert(err.message || "Failed to update product");
+    } finally {
+      setLoading(false);
     }
   };
 

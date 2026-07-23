@@ -2,6 +2,8 @@ import React, { useEffect, useState, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
 
+import { safeFetch } from "../services/api";
+
 const Profile = () => {
   const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -15,28 +17,23 @@ const Profile = () => {
     }
     const fetchMyOrders = async () => {
       try {
-        const res = await fetch("/api/orders/myorders", {
+        const data = await safeFetch("/api/orders/myorders", {
           headers: { Authorization: `Bearer ${user.token}` },
         });
-        const data = await res.json();
-        if (res.ok) {
-          setOrders(Array.isArray(data) ? data : []);
-        } else {
-          // Token obsolete or 401: clear and bounce
-          if (res.status === 401) {
-            logout();
-            navigate("/login");
-          }
-          setOrders([]);
-        }
+        setOrders(Array.isArray(data) ? data : data.orders || []);
       } catch (error) {
         console.error(error);
+        if (error.message.includes("401") || error.message.includes("Not authorized")) {
+          logout();
+          navigate("/login");
+        }
+        setOrders([]);
       } finally {
         setLoading(false);
       }
     };
     fetchMyOrders();
-  }, [user, navigate]);
+  }, [user, navigate, logout]);
 
   const handleLogout = () => {
     logout();

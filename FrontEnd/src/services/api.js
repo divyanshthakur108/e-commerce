@@ -3,7 +3,8 @@
  * Ensures request logging, base URL resolution, and safe non-crashing JSON response parsing.
  */
 
-const BASE_URL = import.meta.env.VITE_API_URL || "";
+export const API_BASE_URL =
+  import.meta.env.VITE_API_URL || "https://e-commerce-ubih.onrender.com";
 
 /**
  * Parses response safely checking Content-Type header.
@@ -57,7 +58,7 @@ export const safeParseJSON = async (response) => {
 export const safeFetch = async (endpoint, options = {}) => {
   const fullUrl = endpoint.startsWith("http")
     ? endpoint
-    : `${BASE_URL}${endpoint}`;
+    : `${API_BASE_URL}${endpoint}`;
 
   console.log(`[API Client] Executing Request: [${options.method || "GET"}] ${fullUrl}`);
 

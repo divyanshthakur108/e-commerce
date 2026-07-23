@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 
+import { safeFetch } from "../services/api";
+
 const AdminOrders = () => {
   const { user } = useContext(AuthContext);
   const [orders, setOrders] = useState([]);
@@ -9,20 +11,12 @@ const AdminOrders = () => {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const res = await fetch("/api/orders", {
+        const data = await safeFetch("/api/orders", {
           headers: {
             Authorization: `Bearer ${user?.token}`,
           },
         });
-
-        if (!res.ok) {
-          const errorText = await res.text();
-          console.error("API Error:", res.status, errorText);
-          return;
-        }
-
-        const data = await res.json();
-        setOrders(Array.isArray(data) ? data : []);
+        setOrders(Array.isArray(data) ? data : data.orders || []);
       } catch (error) {
         console.error("Fetch Orders Error:", error);
       } finally {
@@ -37,7 +31,7 @@ const AdminOrders = () => {
 
   const updateStatus = async (id, status) => {
     try {
-      const res = await fetch(`/api/orders/${id}/status`, {
+      await safeFetch(`/api/orders/${id}/status`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -46,15 +40,11 @@ const AdminOrders = () => {
         body: JSON.stringify({ status }),
       });
 
-      if (res.ok) {
-        setOrders((prev) =>
-          prev.map((order) =>
-            order._id === id ? { ...order, status } : order,
-          ),
-        );
-      } else {
-        console.error("Failed to update status");
-      }
+      setOrders((prev) =>
+        prev.map((order) =>
+          order._id === id ? { ...order, status } : order
+        )
+      );
     } catch (error) {
       console.error("Update Status Error:", error);
     }

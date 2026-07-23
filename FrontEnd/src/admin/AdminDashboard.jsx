@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { safeFetch } from "../services/api";
 
 const AdminDashboard = () => {
   const { user } = useContext(AuthContext);
@@ -15,42 +16,29 @@ const AdminDashboard = () => {
 
     const fetchStats = async () => {
       try {
-        const res = await fetch("/api/analytics", {
+        const data = await safeFetch("/api/analytics", {
           headers: {
             Authorization: `Bearer ${user.token}`,
           },
         });
 
-        const data = await res.json();
-
-        if (res.ok) {
-          setStats({
-            totalOrders: data.totalOrders || 0,
-            totalProducts: data.totalProducts || 0,
-            totalUsers: data.totalUsers || 0,
-            totalRevenue: data.totalRevenue || 0,
-          });
-        } else {
-          setStats({
-            totalOrders: 0,
-            totalProducts: 0,
-            totalUsers: 0,
-            totalRevenue: 0,
-          });
-
-          if (res.status === 401) {
-            navigate("/login");
-          }
-        }
+        setStats({
+          totalOrders: data.totalOrders || 0,
+          totalProducts: data.totalProducts || 0,
+          totalUsers: data.totalUsers || 0,
+          totalRevenue: data.totalRevenue || 0,
+        });
       } catch (error) {
         console.error("Analytics Error:", error);
-
         setStats({
           totalOrders: 0,
           totalProducts: 0,
           totalUsers: 0,
           totalRevenue: 0,
         });
+        if (error.message && (error.message.includes("401") || error.message.includes("Not authorized"))) {
+          navigate("/login");
+        }
       }
     };
 
