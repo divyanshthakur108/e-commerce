@@ -5,6 +5,8 @@ import { addToCart } from "../redux/cartSlice";
 import "../style/product.css";
 
 const ProductCard = ({ product, onQuickView }) => {
+  if (!product) return null;
+
   const dispatch = useDispatch();
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [addedAnimation, setAddedAnimation] = useState(false);
