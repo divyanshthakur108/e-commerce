@@ -29,6 +29,7 @@ const Home = () => {
   const [featured, setFeatured] = useState([]);
   const [bestSellers, setBestSellers] = useState([]);
   const [newArrivals, setNewArrivals] = useState([]);
+  const [allProducts, setAllProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [quickViewProduct, setQuickViewProduct] = useState(null);
 
@@ -39,15 +40,22 @@ const Home = () => {
     const fetchHomeData = async () => {
       try {
         setLoading(true);
-        const [featData, bestData, newData] = await Promise.all([
-          safeFetch("/api/products/featured"),
-          safeFetch("/api/products/best-sellers"),
-          safeFetch("/api/products/new-arrivals"),
+        const [featData, bestData, newData, mainData] = await Promise.all([
+          safeFetch("/api/products/featured").catch(() => []),
+          safeFetch("/api/products/best-sellers").catch(() => []),
+          safeFetch("/api/products/new-arrivals").catch(() => []),
+          safeFetch("/api/products?limit=12").catch(() => ({ products: [] })),
         ]);
 
-        setFeatured(Array.isArray(featData) ? featData : featData.products || []);
-        setBestSellers(Array.isArray(bestData) ? bestData : bestData.products || []);
-        setNewArrivals(Array.isArray(newData) ? newData : newData.products || []);
+        const featList = Array.isArray(featData) ? featData : featData.products || [];
+        const bestList = Array.isArray(bestData) ? bestData : bestData.products || [];
+        const newList = Array.isArray(newData) ? newData : newData.products || [];
+        const mainList = Array.isArray(mainData) ? mainData : mainData.products || [];
+
+        setFeatured(featList);
+        setBestSellers(bestList);
+        setNewArrivals(newList);
+        setAllProducts(mainList);
       } catch (error) {
         console.error("Error fetching homepage products:", error);
       } finally {
@@ -79,6 +87,8 @@ const Home = () => {
     );
   };
 
+  const displayProducts = featured.length > 0 ? featured : allProducts;
+
   return (
     <div className="home-container">
       {/* Hero Section */}
@@ -100,50 +110,50 @@ const Home = () => {
         </div>
       </div>
 
-      {/* Category Slider Bar */}
-      <section className="categories-bar-section">
+      {/* Category Grid Section */}
+      <section className="category-section">
         <div className="section-header">
           <h2>Popular Categories</h2>
-          <Link to="/shop" className="see-all-link">
+          <Link to="/shop" className="view-all-link">
             All Categories &rarr;
           </Link>
         </div>
-        <div className="categories-grid">
+        <div className="category-grid">
           {CATEGORIES.map((cat, idx) => (
             <div
               key={idx}
-              className="category-tile"
+              className="category-card"
               onClick={() => navigate(`/shop?category=${encodeURIComponent(cat.name)}`)}
             >
               <span className="category-icon">{cat.icon}</span>
-              <span className="category-title">{cat.name}</span>
+              <span className="category-name">{cat.name}</span>
             </div>
           ))}
         </div>
       </section>
 
-      {/* Loading Skeleton */}
+      {/* Loading Indicator */}
       {loading ? (
-        <div className="home-loader-wrap">
-          <div className="spinner"></div>
-          <p>Loading Featured Collection...</p>
+        <div className="home-loader-wrap" style={{ textAlign: "center", padding: "60px 0" }}>
+          <p style={{ color: "#f97316", fontSize: "1.2rem" }}>Loading Products...</p>
         </div>
       ) : (
         <>
-          {/* Featured Products */}
-          {featured.length > 0 && (
-            <section className="home-product-section">
+          {/* Featured / Main Products Section */}
+          {displayProducts.length > 0 && (
+            <section className="home-product-section" style={{ marginTop: "40px" }}>
               <div className="section-header">
                 <div>
-                  <span className="section-subtitle">CURATED SELECTION</span>
-                  <h2>Featured Products</h2>
+                  <h2 style={{ color: "#ffffff" }}>
+                    {featured.length > 0 ? "Featured Products" : "Trending Products"}
+                  </h2>
                 </div>
-                <Link to="/shop?sort=featured" className="see-all-link">
+                <Link to="/shop" className="view-all-link">
                   View All &rarr;
                 </Link>
               </div>
               <div className="product-grid">
-                {featured.map((prod) => (
+                {displayProducts.map((prod) => (
                   <ProductCard
                     key={prod._id}
                     product={prod}
@@ -156,13 +166,12 @@ const Home = () => {
 
           {/* Best Sellers */}
           {bestSellers.length > 0 && (
-            <section className="home-product-section">
+            <section className="home-product-section" style={{ marginTop: "40px" }}>
               <div className="section-header">
                 <div>
-                  <span className="section-subtitle">MOST POPULAR</span>
-                  <h2>Best Sellers</h2>
+                  <h2 style={{ color: "#ffffff" }}>Best Sellers</h2>
                 </div>
-                <Link to="/shop" className="see-all-link">
+                <Link to="/shop" className="view-all-link">
                   View All &rarr;
                 </Link>
               </div>
@@ -180,13 +189,12 @@ const Home = () => {
 
           {/* New Arrivals */}
           {newArrivals.length > 0 && (
-            <section className="home-product-section">
+            <section className="home-product-section" style={{ marginTop: "40px" }}>
               <div className="section-header">
                 <div>
-                  <span className="section-subtitle">JUST IN</span>
-                  <h2>New Arrivals</h2>
+                  <h2 style={{ color: "#ffffff" }}>New Arrivals</h2>
                 </div>
-                <Link to="/shop?sort=newest" className="see-all-link">
+                <Link to="/shop?sort=newest" className="view-all-link">
                   View All &rarr;
                 </Link>
               </div>
