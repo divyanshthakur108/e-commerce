@@ -22,43 +22,46 @@ const getEnvApiUrl = () => {
 export const API_BASE_URL = getEnvApiUrl();
 
 /**
- * Parses response safely checking Content-Type header.
+ * Parses response safely checking JSON structure and Content-Type header.
  * Prevents "Unexpected token '<', '<!DOCTYPE '... is not valid JSON" crashes.
  */
 export const safeParseJSON = async (response) => {
   const contentType = response.headers.get("content-type") || "";
   const rawText = await response.text();
+  const trimmed = (rawText || "").trim();
 
   console.log(
     `[API Client] Response [HTTP ${response.status}] [Content-Type: ${contentType}]`
   );
 
-  if (contentType.includes("application/json")) {
+  // Attempt JSON parsing if text starts with JSON brackets or Content-Type is json
+  if (
+    trimmed.startsWith("{") ||
+    trimmed.startsWith("[") ||
+    contentType.includes("application/json")
+  ) {
     try {
-      const data = JSON.parse(rawText);
-      console.log("[API Client] Parsed JSON data:", data);
+      const data = JSON.parse(trimmed);
       return data;
     } catch (parseErr) {
-      console.error("[API Client] JSON parse failure on text:", rawText);
-      throw new Error(`Failed to parse response JSON: ${parseErr.message}`);
+      console.error("[API Client] JSON parse error:", parseErr.message);
     }
   }
 
-  // Non-JSON response (e.g. HTML 404/500 error page from server or proxy fallback)
+  // Non-JSON HTML response (e.g. 404/500 proxy page)
   console.error(
-    `[API Client] Received Non-JSON Response (Status ${response.status}):`,
-    rawText.substring(0, 200)
+    `[API Client] Non-JSON Response (Status ${response.status}):`,
+    trimmed.substring(0, 200)
   );
 
-  // Extract <title> or <pre> text from HTML if available
-  let extractedMessage = `Server returned non-JSON HTML (HTTP ${response.status}).`;
-  if (rawText.includes("<title>")) {
-    const titleMatch = rawText.match(/<title>(.*?)<\/title>/i);
+  let extractedMessage = `Server returned non-JSON response (HTTP ${response.status}).`;
+  if (trimmed.includes("<title>")) {
+    const titleMatch = trimmed.match(/<title>(.*?)<\/title>/i);
     if (titleMatch && titleMatch[1]) {
       extractedMessage += ` Title: ${titleMatch[1]}`;
     }
-  } else if (rawText.includes("<pre>")) {
-    const preMatch = rawText.match(/<pre>(.*?)<\/pre>/i);
+  } else if (trimmed.includes("<pre>")) {
+    const preMatch = trimmed.match(/<pre>(.*?)<\/pre>/i);
     if (preMatch && preMatch[1]) {
       extractedMessage += ` Error: ${preMatch[1]}`;
     }
