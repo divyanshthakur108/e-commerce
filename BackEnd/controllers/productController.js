@@ -33,7 +33,7 @@ const getProducts = async (req, res) => {
 
     // Category filter
     if (category && category !== "All") {
-      query.category = { $regex: new RegExp(`^${category}$`, "i") };
+      query.category = { $regex: new RegExp(category.trim(), "i") };
     }
 
     // Brand filter
@@ -42,11 +42,18 @@ const getProducts = async (req, res) => {
       query.brand = { $in: brandList.map((b) => new RegExp(b.trim(), "i")) };
     }
 
-    // Price Filter (checks price or discountPrice)
-    if (minPrice || maxPrice) {
+    // Price Filter (checks price safely to avoid 0 maxPrice collapse)
+    const minVal = minPrice !== "" && minPrice !== undefined ? Number(minPrice) : null;
+    const maxVal = maxPrice !== "" && maxPrice !== undefined ? Number(maxPrice) : null;
+
+    if ((minVal !== null && !isNaN(minVal) && minVal > 0) || (maxVal !== null && !isNaN(maxVal) && maxVal > 0)) {
       query.price = {};
-      if (minPrice) query.price.$gte = Number(minPrice);
-      if (maxPrice) query.price.$lte = Number(maxPrice);
+      if (minVal !== null && !isNaN(minVal) && minVal > 0) {
+        query.price.$gte = minVal;
+      }
+      if (maxVal !== null && !isNaN(maxVal) && maxVal > 0) {
+        query.price.$lte = maxVal;
+      }
     }
 
     // Rating Filter
