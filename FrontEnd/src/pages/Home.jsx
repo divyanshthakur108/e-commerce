@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import HeroSection from "../components/HeroSection";
 import ProductCard from "../components/ProductCard";
 import QuickViewModal from "../components/QuickViewModal";
 import { useDispatch } from "react-redux";
@@ -89,31 +90,15 @@ const Home = () => {
 
   return (
     <div className="home-container">
-      {/* Hero Section */}
-      <div className="hero-banner-v2">
-        <div className="hero-content">
-          <span className="hero-badge">🔥 SUMMER SALE IS LIVE • UP TO 60% OFF</span>
-          <h1>Discover Next-Gen Products at ShopNest</h1>
-          <p>
-            Upgrade your lifestyle with modern tech, trending fashion, and premium home essentials delivered directly to your doorstep.
-          </p>
-          <div className="hero-btn-group">
-            <button className="btn-hero-primary" onClick={() => navigate("/shop")}>
-              Explore Full Shop →
-            </button>
-            <button className="btn-hero-secondary" onClick={() => navigate("/shop?category=Electronics")}>
-              Browse Electronics
-            </button>
-          </div>
-        </div>
-      </div>
+      {/* Luxury Immersive Hero Section */}
+      <HeroSection />
 
-      {/* Category Grid Section */}
-      <section className="category-section">
+      {/* Popular Categories Grid */}
+      <section className="category-section" style={{ marginTop: "50px" }}>
         <div className="section-header">
-          <h2>Popular Categories</h2>
+          <h2>All Categories</h2>
           <Link to="/shop" className="view-all-link">
-            All Categories &rarr;
+            Browse All &rarr;
           </Link>
         </div>
         <div className="category-grid">

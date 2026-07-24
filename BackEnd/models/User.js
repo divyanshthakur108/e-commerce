@@ -3,9 +3,31 @@ const bcrypt = require("bcryptjs");
 
 const UserSchema = new mongoose.Schema(
   {
-    name: String,
-    email: String,
-    password: String,
+    name: {
+      type: String,
+      required: true,
+    },
+    username: {
+      type: String,
+      default: "",
+    },
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    phone: {
+      type: String,
+      default: "",
+    },
+    password: {
+      type: String,
+      required: true,
+    },
+    avatar: {
+      type: String,
+      default: "",
+    },
 
     role: {
       type: String,
@@ -20,8 +42,36 @@ const UserSchema = new mongoose.Schema(
 
     verified: {
       type: Boolean,
-      default: false,
+      default: true,
     },
+
+    loyaltyPoints: {
+      type: Number,
+      default: 250,
+    },
+
+    rewardBadge: {
+      type: String,
+      default: "VIP Gold Member",
+    },
+
+    addresses: [
+      {
+        street: String,
+        city: String,
+        state: String,
+        zip: String,
+        country: String,
+        isDefault: Boolean,
+      },
+    ],
+
+    wishlist: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Product",
+      },
+    ],
 
     otp: String,
     otpExpires: Date,
